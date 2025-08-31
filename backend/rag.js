@@ -5,17 +5,12 @@ import OpenAI from "openai";
 const router = Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Bulk embed chunks: [{document_id, idx, content}]
 router.post("/embed", async (req,res) => {
   try {
     const chunks = req.body?.chunks || [];
     if (!chunks.length) return res.status(400).json({error:"no chunks"});
-
     const inputs = chunks.map(c => c.content);
-    const e = await openai.embeddings.create({
-      model:"text-embedding-3-large",
-      input: inputs
-    });
+    const e = await openai.embeddings.create({ model:"text-embedding-3-large", input: inputs });
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -40,7 +35,6 @@ router.post("/embed", async (req,res) => {
   }
 });
 
-// Answer a question with citations for a given project
 router.post("/query", async (req, res) => {
   try {
     const { projectId, question, phase } = req.body || {};

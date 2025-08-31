@@ -9,7 +9,6 @@ import stripeWebhook from "./stripe-webhook.js";
 
 const app = express();
 
-// CORS: allow configured origins (comma list) or all (*)
 const allowed = (process.env.ALLOWED_ORIGINS || "*")
   .split(",")
   .map(s => s.trim())
@@ -27,7 +26,6 @@ app.use(bodyParser.json());
 
 app.get("/health", (_,res)=>res.json({ ok:true, uptime:process.uptime() }));
 
-// Dev-only helper: issues a JWT quickly (remove in prod)
 app.post("/auth/dev", (req,res)=>{
   const user = { id:"dev-user", role:"free_user" };
   const token = jwt.sign(user, process.env.JWT_SECRET || "change_me", { expiresIn: "7d" });
@@ -39,7 +37,6 @@ app.use("/fast", fast);
 app.use("/files", files);
 app.use("/billing", stripeWebhook);
 
-// Demo seeder for one-click sample
 import seed from "./tools/seed-endpoint.js";
 app.use("/admin", seed);
 

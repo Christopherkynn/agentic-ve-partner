@@ -47,4 +47,6 @@ services:
 
 databases:
   - name: ve-postgres
-    plan: starter
+    plan: basic-256mb
+    postgresMajorVersion: '17'
+    diskSizeGB: 15

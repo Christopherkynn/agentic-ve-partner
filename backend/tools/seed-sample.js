@@ -20,7 +20,6 @@ Design speed is 45 mph; target LOS C at opening year.
 Floodplain impacts must not increase BFE; follow local stormwater criteria.
 Pedestrian crossing required at Station 23+50 with ADA ramps both sides.
 `;
-
     const pieces = text.trim().split(/\n/).map((t,i)=>({ idx:i, content:t }));
     const e = await openai.embeddings.create({ model:"text-embedding-3-large", input: pieces.map(p=>p.content) });
 

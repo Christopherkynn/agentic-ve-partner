@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS documents(
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3072 dims for text-embedding-3-large
 CREATE TABLE IF NOT EXISTS chunks(
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
