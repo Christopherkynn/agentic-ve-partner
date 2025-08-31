@@ -54,7 +54,7 @@ router.post("/query", async (req, res) => {
 
     const context = rows.map(r => `【${r.name}】\n${r.content}`).join("\n---\n");
 
-    const prompt = \`
+    const prompt = `
 You are a Value Engineering (VE) copilot.
 PHASE=\${phase||'n/a'}
 QUESTION=\${question}
@@ -62,7 +62,7 @@ QUESTION=\${question}
 Use the sources below to answer precisely. Attribute with a short citations appendix.
 SOURCES:
 \${context}
-\`.trim();
+`.trim();
 
     const chat = await openai.chat.completions.create({
       model: "gpt-4o-mini",
