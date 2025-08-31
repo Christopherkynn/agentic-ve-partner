@@ -1,0 +1,41 @@
+{
+  "name": "Stripe RBAC",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/stripe-hook"
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://ve-backend/billing/webhook",
+        "responseFormat": "json",
+        "options": {
+          "bodyContentType": "raw",
+          "rawBody": true
+        }
+      },
+      "id": "forward",
+      "name": "Forward to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Forward to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

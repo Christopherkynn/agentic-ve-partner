@@ -1,0 +1,43 @@
+{
+  "name": "RAG Answer",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/rag-answer"
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://ve-backend/rag/query",
+        "jsonParameters": true,
+        "options": {
+          "bodyContentType": "json"
+        },
+        "optionsJsonParameters": true,
+        "sendBinaryData": false,
+        "bodyParametersJson": "={{$json}}"
+      },
+      "id": "post",
+      "name": "RAG Query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "RAG Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

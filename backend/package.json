@@ -1,0 +1,20 @@
+{
+  "name": "ve-partner-backend",
+  "version": "0.2.0",
+  "type": "module",
+  "main": "server.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js",
+    "postdeploy": "node backend/tools/run-schema.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "openai": "^4.62.1",
+    "pg": "^8.11.3",
+    "uuid": "^10.0.0"
+  }
+}

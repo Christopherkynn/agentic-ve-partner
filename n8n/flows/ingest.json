@@ -1,0 +1,85 @@
+{
+  "name": "VE Ingest",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/ingest"
+      },
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "={{$json.url}}",
+        "responseFormat": "file",
+        "options": {}
+      },
+      "id": "http",
+      "name": "Download File",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "command": "python3 /scripts/pdf_to_chunks.py {{$json.filename}}"
+      },
+      "id": "exec",
+      "name": "Chunk",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://ve-backend/rag/embed",
+        "jsonParameters": true,
+        "options": {
+          "bodyContentType": "json"
+        },
+        "optionsJsonParameters": true,
+        "sendBinaryData": false,
+        "bodyParametersJson": "={{$json.chunks}}"
+      },
+      "id": "post",
+      "name": "Save Chunks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Download File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download File": {
+      "main": [
+        [
+          {
+            "node": "Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk": {
+      "main": [
+        [
+          {
+            "node": "Save Chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
