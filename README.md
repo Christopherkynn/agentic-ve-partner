@@ -16,3 +16,6 @@ This repo is ready to push to GitHub and deploy:
 
 ### Render note
 Legacy Postgres plans like `starter` are no longer valid for **new** DBs. This `render.yaml` uses `plan: basic-256mb` with `postgresMajorVersion: '17'` and `diskSizeGB: 15`.
+
+
+**Build fix:** Render now uses `npm install --omit=dev` for the backend and runs DB schema before starting the API. Node version pinned via `.node-version` (20.11.1) and `engines.node` in `backend/package.json`.

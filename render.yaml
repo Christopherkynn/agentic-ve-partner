@@ -3,8 +3,8 @@ services:
     name: ve-backend
     env: node
     plan: starter
-    buildCommand: cd backend && npm ci
-    startCommand: cd backend && node server.js
+    buildCommand: cd backend && npm install --omit=dev
+    startCommand: cd backend && node tools/run-schema.js && node server.js
     autoDeploy: true
     healthCheckPath: /health
     envVars:
