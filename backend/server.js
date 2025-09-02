@@ -1,50 +1,64 @@
-// backend/server.js
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import jwt from "jsonwebtoken";
-
-import rag from "./rag.js";
-import ingest from "./svc-ingest.js";     // <-- NEW
-import fast from "./fast.js";
-import files from "./files.js";
-import stripeWebhook from "./stripe-webhook.js";
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import fs from 'fs/promises';
+import path from 'path';
+import files from './files.js';
+import ask from './ask.js';
+import fastRouter from './fast.js';
+import ideas from './ideas.js';
+import evaluate from './evaluate.js';
+import develop from './develop.js';
+import report from './report.js';
+import n8nRouter from './n8n.js';
 
 const app = express();
 
-const allowed = (process.env.ALLOWED_ORIGINS || "*")
-  .split(",")
-  .map(s => s.trim())
-  .filter(Boolean);
-
+// Configure CORS to allow requests from the frontend URL provided in env
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowed.includes("*") || allowed.includes(origin)) return cb(null, true);
-    return cb(new Error("Not allowed by CORS"));
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
 
-app.use(bodyParser.json({ limit: "20mb" }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/health", (_req, res) => res.json({ ok: true, uptime: process.uptime() }));
+// Mount routers
+app.use('/files', files);
+app.use('/', ask); // exposes POST /ask
+app.use('/fast', fastRouter);
+app.use('/ideas', ideas);
+app.use('/evaluate', evaluate);
+app.use('/develop', develop);
+app.use('/report', report);
+app.use('/n8n', n8nRouter);
 
-// dev-only helper
-app.post("/auth/dev", (_req, res) => {
-  const user = { id: "dev-user", role: "free_user" };
-  const token = jwt.sign(user, process.env.JWT_SECRET || "change_me", { expiresIn: "7d" });
-  res.json({ token, user });
+// Health check endpoint: verify the persistent disk is writable
+app.get('/health', async (_req, res) => {
+  try {
+    const tmpDir = process.env.FILE_STORAGE_ROOT || '/data/uploads';
+    const testFile = path.join(tmpDir, 'healthcheck.tmp');
+    await fs.writeFile(testFile, 'ok');
+    const content = await fs.readFile(testFile, 'utf8');
+    await fs.unlink(testFile);
+    if (content === 'ok') {
+      res.json({ ok: true });
+    } else {
+      res.status(500).json({ ok: false });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false, error: 'disk not writable' });
+  }
 });
 
-app.use("/ingest", ingest);               // <-- NEW
-app.use("/rag", rag);
-app.use("/fast", fast);
-app.use("/files", files);
-app.use("/billing", stripeWebhook);
-
-// demo seed endpoint (already updated with ::vector fix)
-import seed from "./tools/seed-endpoint.js";
-app.use("/admin", seed);
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log("API up on :" + port));
+const port = process.env.PORT || 4000;
+app.listen(port, () => {
+  console.log(`Backend server listening on port ${port}`);
+});

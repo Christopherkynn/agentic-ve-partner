@@ -1,13 +1,13 @@
 {
-  "name": "VE Ingest",
+  "name": "Agent Orchestrator",
   "nodes": [
     {
       "parameters": {
-        "path": "ingest",
+        "path": "agent",
         "responseMode": "onReceived",
         "httpMethod": "POST"
       },
-      "id": "webhook_ingest",
+      "id": "webhook_agent",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
@@ -15,14 +15,14 @@
     },
     {
       "parameters": {
-        "url": "={{$env.API_BASE + '/n8n/ingest'}}",
+        "url": "={{$env.API_BASE + '/n8n/agent'}}",
         "method": "POST",
         "jsonParameters": true,
         "options": {},
-        "bodyParametersJson": "{\"documentId\": \"={{$json.documentId}}\"}"
+        "bodyParametersJson": "{\"projectId\": \"={{$json.projectId}}\", \"phase\": \"={{$json.phase}}\"}"
       },
-      "id": "http_request_ingest",
-      "name": "Trigger Ingest",
+      "id": "http_request_agent",
+      "name": "Trigger Agent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [500, 300]
@@ -33,7 +33,7 @@
       "main": [
         [
           {
-            "node": "Trigger Ingest",
+            "node": "Trigger Agent",
             "type": "main",
             "index": 0
           }
