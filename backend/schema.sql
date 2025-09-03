@@ -22,6 +22,17 @@ CREATE TABLE IF NOT EXISTS projects (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+--
+-- Migration: Ensure columns required by the new API exist on the projects table.
+-- Some earlier versions of this schema defined a `projects` table without
+-- `owner_id`, `title`, `slug` or `status`. These ALTER statements add any
+-- missing columns without affecting existing data. Subsequent inserts will
+-- populate these fields.
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS owner_id UUID;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS title TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS slug TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ingesting';
+
 -- Project assets. Stores uploaded files, generated diagrams and reports.
 CREATE TABLE IF NOT EXISTS project_assets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
