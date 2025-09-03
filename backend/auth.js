@@ -1,21 +1,13 @@
-import jwt from 'jsonwebtoken';
+// Simple authentication middleware. In a real deployment you should
+// integrate with Clerk, Auth.js or your existing system. This stub
+// attaches a static user id to every request so development can
+// proceed without a login flow.
 
-/**
- * Simple JWT authentication middleware. Expects the Authorization header to
- * contain a Bearer token. When verified the decoded payload is attached
- * to req.user. If verification fails the request is rejected.
- */
-export function authenticate(req, res, next) {
-  const header = req.headers['authorization'] || '';
-  const [, token] = header.split(' ');
-  if (!token) {
-    return res.status(401).json({ error: 'Authorization token required' });
-  }
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload;
-    return next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
+export function authenticate(req, _res, next) {
+  // TODO: replace with real authentication logic. For now we always
+  // assign a fake user to illustrate project isolation. If you
+  // integrate with Clerk/Auth.js you can extract the user id from
+  // req.session or req.auth.
+  req.user = { id: '00000000-0000-0000-0000-000000000000' };
+  next();
 }

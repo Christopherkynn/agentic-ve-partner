@@ -1,8 +1,12 @@
+// Next.js configuration for the chat‑centric VE workspace. Enables the
+// new App Router and configures TypeScript settings. You may extend
+// this file to configure images domains or environment variables.
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  env: {
-    NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE || ''
+  experimental: {
+    appDir: true
   }
 };
 

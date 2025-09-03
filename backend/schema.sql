@@ -11,15 +11,59 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Projects table. Each project belongs to a user.
+-- Projects table. Each project belongs to a user and represents a VE study.
 CREATE TABLE IF NOT EXISTS projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
+  owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  status TEXT NOT NULL DEFAULT 'ingesting',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Project assets. Stores uploaded files, generated diagrams and reports.
+CREATE TABLE IF NOT EXISTS project_assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  content_type TEXT,
+  bytes BIGINT,
+  storage_uri TEXT NOT NULL,
+  checksum TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Documents table. Stores metadata and file path on disk.
+-- Conversations hold a chat history for a given project. Future work
+-- could allow multiple conversations per project or per user.
+CREATE TABLE IF NOT EXISTS conversations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Messages within a conversation. The `tool_call` column can store
+-- structured JSON describing agentic tool calls (FAST, Ideas, Eval,
+-- Develop, Report). Tokens in/out track usage and can be used for
+-- billing or credit calculations.
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  content TEXT,
+  tool_call JSONB,
+  tokens_in INT,
+  tokens_out INT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Documents hold metadata and file path on disk. These rows are
+-- created as part of ingestion; text and embedding columns are
+-- optional until extraction is complete.
 CREATE TABLE IF NOT EXISTS documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
@@ -32,12 +76,15 @@ CREATE TABLE IF NOT EXISTS documents (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Chunks table for RAG. Stores embeddings for document segments.
-CREATE TABLE IF NOT EXISTS doc_chunks (
+-- Chunks table for RAG. Stores embeddings for document segments. This
+-- replaces the earlier doc_chunks table but is created with the same
+-- columns for compatibility.
+CREATE TABLE IF NOT EXISTS chunks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
   text TEXT,
+  metadata JSONB,
   embedding vector(1536),
   chunk_index INT
 );
@@ -87,7 +134,7 @@ CREATE TABLE IF NOT EXISTS scores (
   score NUMERIC
 );
 
--- Write-ups for selected ideas
+-- Write‑ups for selected ideas
 CREATE TABLE IF NOT EXISTS writeups (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
@@ -100,7 +147,7 @@ CREATE TABLE IF NOT EXISTS writeups (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Reports table
+-- Reports table storing generated report files
 CREATE TABLE IF NOT EXISTS reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
@@ -109,5 +156,18 @@ CREATE TABLE IF NOT EXISTS reports (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Index for fast vector searches on doc_chunks
-CREATE INDEX IF NOT EXISTS doc_chunks_embedding_idx ON doc_chunks USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);
+-- Tasks table recording asynchronous workflows such as ingestion,
+-- reindexing, report generation and image rendering.
+CREATE TABLE IF NOT EXISTS tasks (
+  id UUID PRIMARY KEY,
+  project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  payload JSONB,
+  external_ref TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Index for fast vector searches on chunks
+CREATE INDEX IF NOT EXISTS chunks_embedding_idx ON chunks USING ivfflat (embedding vector_cosine);
