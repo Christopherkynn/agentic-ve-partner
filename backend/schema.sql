@@ -170,6 +170,8 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 -- Index for fast vector searches on chunks
--- The operator class name for cosine similarity varies by pgvector version.
--- Use vector_cosine_ops which is available in pgvector >=0.5.
-CREATE INDEX IF NOT EXISTS chunks_embedding_idx ON chunks USING ivfflat (embedding vector_cosine_ops);
+-- Note: The ivfflat index requires vector dimensions under 2000 and may
+-- not be available on some Render Postgres plans. To avoid deployment
+-- failures we omit this index by default. You can add it manually via
+-- psql once pgvector is upgraded and configured.
+-- CREATE INDEX IF NOT EXISTS chunks_embedding_idx ON chunks USING ivfflat (embedding vector_cosine_ops);
