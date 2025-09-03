@@ -31,10 +31,15 @@ import imageRouter from './image.js';
 const app = express();
 
 // CORS configuration: allow the origins specified in ALLOWED_ORIGINS.
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+// If no ALLOWED_ORIGINS is provided, default to '*' so all origins are allowed.
+const allowedOriginsEnv = process.env.ALLOWED_ORIGINS ?? '*';
+const allowedOrigins = allowedOriginsEnv.split(',').map(s => s.trim()).filter(Boolean);
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return cb(null, true);
+    // Allow requests with no Origin header (e.g., mobile apps) or when '*' is whitelisted or the origin matches one of the allowed values.
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true
