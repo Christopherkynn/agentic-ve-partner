@@ -35,6 +35,11 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ingesting';
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
+-- Legacy clean-up: If an old schema created a `name` column on projects
+-- (e.g. from the original code), drop it to avoid NOT NULL violations when
+-- inserting new rows. All titles should be stored in the `title` column.
+ALTER TABLE projects DROP COLUMN IF EXISTS name;
+
 -- Project assets. Stores uploaded files, generated diagrams and reports.
 CREATE TABLE IF NOT EXISTS project_assets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
