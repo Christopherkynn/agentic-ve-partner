@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'unauthorized' });
     const { rows } = await pool.query(
-      'SELECT id, name as title, slug, status, created_at, updated_at FROM projects WHERE owner_id = $1 ORDER BY updated_at DESC',
+      'SELECT id, title, slug, status, created_at, updated_at FROM projects WHERE owner_id = $1 ORDER BY updated_at DESC',
       [userId]
     );
     res.json(rows);
@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
     const slug = slugify(title);
     const id = uuidv4();
     await pool.query(
-      `INSERT INTO projects (id, owner_id, name, slug, status, created_at, updated_at)
+      `INSERT INTO projects (id, owner_id, title, slug, status, created_at, updated_at)
        VALUES ($1, $2, $3, $4, 'ingesting', now(), now())`,
       [id, userId, title, slug]
     );
@@ -98,7 +98,7 @@ router.patch('/:id', async (req, res) => {
     const fields = [];
     const values = [id, userId];
     if (title) {
-      fields.push(`name = $${values.length + 1}`);
+      fields.push(`title = $${values.length + 1}`);
       values.push(title);
     }
     if (status) {
