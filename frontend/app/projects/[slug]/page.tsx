@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+// Use useParams from next/navigation instead of next/router. The app router
+// provides hooks for accessing dynamic route segments. Using next/router
+// inside the app directory can cause runtime errors because it is tied to
+// the pages router. See https://nextjs.org/docs/app/api-reference/functions/use-router for details.
+import { useParams } from 'next/navigation';
 import ProjectList from '@/components/sidebar/ProjectList';
 import ChatStream, { ChatMessage } from '@/components/chat/ChatStream';
 import ChatComposer from '@/components/chat/ChatComposer';
@@ -15,8 +19,12 @@ interface Asset {
 }
 
 export default function ProjectChatPage() {
-  const router = useRouter();
-  const { slug } = router.query as { slug: string };
+  // Obtain the dynamic "slug" route parameter using useParams. This hook
+  // returns an object mapping route segment names to their values. It is
+  // safe to call in a Client Component. When slug is undefined (e.g., during
+  // prerender), we avoid fetching data.
+  const params = useParams();
+  const slug = (params?.slug ?? '') as string;
   const [projectId, setProjectId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
