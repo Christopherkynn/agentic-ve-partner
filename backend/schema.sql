@@ -32,6 +32,8 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS owner_id UUID;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS title TEXT;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS slug TEXT;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ingesting';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 
 -- Project assets. Stores uploaded files, generated diagrams and reports.
 CREATE TABLE IF NOT EXISTS project_assets (
